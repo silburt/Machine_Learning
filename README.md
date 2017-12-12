@@ -3,3 +3,5 @@ This repository contains various machine learning/data science projects that Iâ€
 
 - Stock_Correlation: Performs stock correlations and unsupervised stock clustering for different financial sectors.  
 - Fundamental Analysis: Applies machine learning to stocks in the Wilshire 5000 index to predict whether a given stock price will increase or decrease over the coming year. Uses fundamental analysis as features.
+
+Blog posts on these projects can be found at https://silburt.github.io/projects.html
