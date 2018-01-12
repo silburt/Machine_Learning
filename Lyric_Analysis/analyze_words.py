@@ -1,6 +1,3 @@
-#http://www.markhneedham.com/blog/2015/01/19/pythonnltk-finding-the-most-common-phrases-in-how-i-met-your-mother/
-# https://inzaniak.github.io/pybistuffblog/posts/2017/04/20/python-count-frequencies-with-nltk.html
-# https://stackoverflow.com/questions/14364762/counting-n-gram-frequency-in-python-nltk
 
 from collections import Counter
 from itertools import combinations
@@ -27,7 +24,6 @@ def get_word_ranks(cnt1, pos1, cnt2, pos2, master_labels, n_words, pad):
             pos1.append(i)
     return master_labels, pos1, pos2
 
-# https://stackoverflow.com/questions/11763613/python-list-of-ngrams-with-frequencies
 ####### Main Functions ###########
 def get_stats(dir, norm, n_songs, print_=0):
     files = glob.glob('%s/*.txt'%dir)
@@ -75,10 +71,11 @@ def get_stats(dir, norm, n_songs, print_=0):
 
 ####### Arguments ###########
 if __name__ == '__main__':
-    dirs = ['playlists/edm','playlists/rap','playlists/rock', 'playlists/country', 'playlists/pop']
+    dir = '../../MachinelearningScratchRepo/Lyric_analysis/'
+    dirs = ['%s/playlists/edm'%dir,'%s/playlists/rap'%dir,'%s/playlists/rock'%dir, '%s/playlists/country'%dir, '%s/playlists/pop'%dir]
     #dirs = ['playlists/edm','playlists/pop']
     norm = 0
-    n_songs = 996
+    n_songs = 1000
     n_grams = 1
     n_common_words = 80
 
@@ -104,8 +101,6 @@ if __name__ == '__main__':
             plt.plot([0,n_common_words/2], [0,n_common_words], 'g')
             plt.plot([0,n_common_words],[n_common_words,n_common_words],'r--')
             plt.plot([n_common_words,n_common_words],[0,n_common_words],'r--')
-            #plt.fill_between([0,n_common_words+pad],[n_common_words,n_common_words],[n_common_words+pad,n_common_words+pad], facecolor='red',alpha=0.5, linewidth=0)
-            #plt.axvspan(n_common_words, n_common_words+pad, alpha=0.5, color='red')
             plt.plot(pos1, pos2, '.', color='black')
             for i in range(len(pos1)):
                 rot, buffx, buffy = 0, 0.5, -1
@@ -133,9 +128,6 @@ if __name__ == '__main__':
             ylabel = 'counts/(song*word)'
         for i in range(len(data)):
             labels, count = zip(*data[i][n_grams-1].most_common(n_common_words))
-            #ran = np.arange(1,len(count)+1)
-            #print(zip(labels,count,ran,ran**(0.55)*np.asarray(count)))
-            #labels, count = spam_filter(labels, count)
             x, name = range(len(count)), dirs[i].split('playlists/')[1]
             plt.plot(x, count, label='avg. words per song=%d'%data[i][3])
             plt.xticks(x, labels, rotation='vertical',fontsize=11)
@@ -149,13 +141,13 @@ if __name__ == '__main__':
     get_unique = 1
     if get_unique == 1:
         labels, counts = [], []
-        cold_words = {}     #words popular in other genres but not this one
-        unique_words = {}   #words popular in this genre and no other
+        cold_words = {}  #words popular in all other genres but this one
+        hot_words = {}   #words popular in this genre and no other
         for i in range(len(dirs)):
             l, c = zip(*data[i][n_grams-1].most_common(10*n_common_words))
             labels.append(l)
             counts.append(c)
-            cold_words[i], unique_words[i] = [], []
+            cold_words[i], hot_words[i] = [], []
         for i in range(len(dirs)):
             for j in range(2*n_common_words):
                 label = labels[i][j]
@@ -170,16 +162,16 @@ if __name__ == '__main__':
                         ranks_ = np.append(ranks_,10*n_common_words)
                         counts_ = np.append(counts_,0)
                 if len(np.where(1.5*j + 2 < ranks_)[0]) == len(ranks_)-1:
-                    unique_words[i].append(label)
-                if label in ['love']:
-                    print(label,ranks_,counts_)
+                    hot_words[i].append(label)
+                #if label in ['love']:
+                #    print(label,ranks_,counts_)
                 if (len(np.where(np.max(ranks_)/1.5 - 2 < ranks_)[0]) == 1) and (np.min(counts_) > 10):
                     if label not in cold_words[np.argmax(ranks_)]:
                         cold_words[np.argmax(ranks_)].append(label)
         
-        print("*******unique words*******")
+        print("*******hot words*******")
         for i in range(len(dirs)):
-            print(dirs[i],unique_words[i])
+            print(dirs[i],hot_words[i])
         print("*******cold words*******")
         for i in range(len(dirs)):
             print(dirs[i],cold_words[i])
