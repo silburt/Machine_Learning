@@ -1,24 +1,37 @@
-#https://danijar.com/tips-for-training-recurrent-neural-networks/
-#https://github.com/keras-team/keras/blob/master/examples/lstm_text_generation.py - apparently this works...
 import numpy as np
 from keras.models import Sequential
-from keras.layers import Dense, LSTM, GRU, Embedding
-#from keras.layers import Lambda, Input
+from keras.layers import Dense, LSTM, GRU, Embedding, TimeDistributed
 from keras.optimizers import Adam, RMSprop
 from keras.callbacks import ModelCheckpoint
-from keras.utils import np_utils
 from keras.models import load_model
 from keras import backend as K
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 import sys
 
-def train_model(genre,dir_model,seq_length,batch_size,word_or_character,embed_dim=50):
+# one-hot encode on the fly, saves tons of memory
+def one_hot_gen(X, Y, vocab_size, seq_length, batch_size=64):
+    while True:
+        for i in range(0, len(X), batch_size):
+            x, y = X[i:i+batch_size].copy(), Y[i:i+batch_size].copy()
+            x = np.eye(vocab_size)[x]
+            y = np.eye(vocab_size)[y]
+            yield (x, y)
+
+# main routine
+def train_model(genre, dir_model, MP):
     sess = tf.Session(config=tf.ConfigProto(log_device_placement=True)) #check gpu is being used
     
-    text_to_int, int_to_text, n_chars = np.load('playlists/%s/ancillary_%s.npy'%(genre,word_or_character))
-    X = np.load('playlists/%s/X_sl%d_%s.npy'%(genre,seq_length,word_or_character))
-    y = np.load('playlists/%s/y_sl%d_%s.npy'%(genre,seq_length,word_or_character))
+    batch_size = MP['bs']
+    lstm_size = MP['lstm_size']
+    seq_length = MP['seq_length']
+    drop = MP['dropout']
+    epochs = MP['epochs']
+    
+    text_to_int, int_to_text, n_chars = np.load('playlists/%s/ancillary_char.npy'%genre)
+    vocab_size = len(text_to_int)
+    X = np.load('playlists/%s/X_sl%d_char.npy'%(genre, seq_length))
+    y = np.load('playlists/%s/y_sl%d_char.npy'%(genre, seq_length))
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
@@ -28,49 +41,44 @@ def train_model(genre,dir_model,seq_length,batch_size,word_or_character,embed_di
     except:
         print("generating new model")
         model = Sequential()
-        
-        if word_or_character == 'character':
-            epochs = 100
-#            model.add(GRU(512, dropout=0.2, recurrent_dropout=0.2, return_sequences=True, input_shape=(X.shape[1], X.shape[2])))
-#            model.add(GRU(512, dropout=0.2, recurrent_dropout=0.2, return_sequences=False))
-#            model.add(Dense(y.shape[1], activation='softmax'))
-            model.add(GRU(128, dropout=0.2, recurrent_dropout=0.2, input_shape=(X.shape[1], X.shape[2])))
-            model.add(Dense(y.shape[1], activation='softmax'))
-            loss = 'categorical_crossentropy'
+        model.add(GRU(lstm_size, dropout=drop, recurrent_dropout=drop, return_sequences=True,
+                      input_shape=(seq_length, vocab_size)))
+        for i in range(MP['n_layers']-1):
+            model.add(GRU(lstm_size, dropout=drop, recurrent_dropout=drop, return_sequences=True))
+        model.add(TimeDistributed(Dense(vocab_size, activation='softmax'))) #output shape=(bs, sl, vocab)
 
-        if word_or_character == 'word':
-            epochs = 5000
-            embedding_matrix = np.load('playlists/%s/embedding_matrix_%dd.npy'%(genre,embed_dim))
-            model.add(Embedding(len(text_to_int), embed_dim, weights=[embedding_matrix],
-                                input_length=seq_length, trainable=False))
-            model.add(GRU(embed_dim, dropout=0.2, recurrent_dropout=0.2, return_sequences=True))
-            model.add(GRU(512, dropout=0.2, recurrent_dropout=0.2, return_sequences=False))
-            model.add(Dense(embed_dim, activation='linear'))
-            loss = 'mean_squared_error'    #maybe try cosine_proximity? You are outputting vectors after all
-            #loss = 'mean_absolute_error'
-
-        lr = 1e-3
-        #decay = lr/epochs
+        decay = lr/epochs
         #optimizer = Adam(lr=lr, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=decay, clipvalue=1)
-        optimizer = RMSprop(lr=lr)
-        model.compile(loss=loss, optimizer=optimizer)
+        optimizer = RMSprop(lr=MP['lr'], decay=decay)
+        model.compile(loss='categorical_crossentropy', optimizer=optimizer)
 
     print(model.summary())
     checkpoint = ModelCheckpoint(dir_model, monitor='loss', verbose=1, save_best_only=True, mode='min')
     callbacks_list = [checkpoint]
-    model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size,
-              callbacks=callbacks_list, validation_data=(X_test, y_test), verbose=1)
+    model.fit_generator(one_hot_gen(X_train, y_train, vocab_size, seq_length, batch_size),
+                        steps_per_epoch=len(X_train)/batch_size, epochs=epochs, callbacks=callbacks_list,
+                        validation_data=one_hot_gen(X_test, y_test, vocab_size, seq_length, batch_size),
+                        validation_steps=len(X_test)/batch_size)
     model.save(dir_model)
 
 if __name__ == '__main__':
     genre = 'pop-rock-edm'
-    word_or_character = 'character'
-    seq_length = int(sys.argv[1])
-    batch_size = 256
     
-    dir_model = 'models/%s_sl%d_%s.h5'%(genre,seq_length,word_or_character)
+    # model parameters
+    MP = {}
+    MP['seq_length'] = 150              # sequence length
+    MP['n_layers'] = int(sys.argv[1])   # number of lstm layers
+    MP['lstm_size'] = int(sys.argv[2])  # lstm size
+    MP['bs'] = int(sys.argv[3])         # batch size
+    MP['dropout'] = float(sys.argv[4])  # dropout fraction
+    MP['lr'] = 1e-3                     # learning rate
+    MP['epochs'] = 50                   # n_epochs
     
-    train_model(genre,dir_model,seq_length,batch_size,word_or_character)
+    dir_model = 'models/%s_sl150_nl%d_size%d_bs%d_drop%.1f.h5'%(genre, MP['n_layers'],
+                                                                MP['lstm_size'], MP['bs'],
+                                                                MP['dropout'])
+    
+    train_model(genre, dir_model, MP)
 
 
 

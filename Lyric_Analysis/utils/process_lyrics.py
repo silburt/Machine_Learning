@@ -17,12 +17,12 @@ def unicodetoascii(text, word_or_character):
                 replace('\xe2\x80\x94', '-').
                 replace('\xe2\x80\x98', "'").
                 replace('\xe2\x80\x9b', "'").
-                replace('\xe2\x80\x9c', '"').
-                replace('\xe2\x80\x9c', '"').
-                replace('\xe2\x80\x9d', '"').
-                replace('\xe2\x80\x9e', '"').
-                replace('\xe2\x80\x9f', '"').
-                replace('\xe2\x80\xa6', '...').
+                replace('\xe2\x80\x9c', "'").
+                replace('\xe2\x80\x9c', "'").
+                replace('\xe2\x80\x9d', "'").
+                replace('\xe2\x80\x9e', "'").
+                replace('\xe2\x80\x9f', "'").
+                replace('\xe2\x80\xa6', '').
                 replace('\xe2\x80\xb2', "'").
                 replace('\xe2\x80\xb3', "'").
                 replace('\xe2\x80\xb4', "'").
@@ -46,8 +46,12 @@ def unicodetoascii(text, word_or_character):
                 replace('}',')').
                 replace('[','(').
                 replace(']',')').
-                replace('`',"'").
+                replace(':','').
+                replace(';','').
                 replace('"',"'").
+                replace('`',"'").
+                #replace('!','').
+                #replace('?','').
                 replace('$','').
                 replace('&','and').
                 replace('#','number ').
@@ -74,8 +78,8 @@ def unicodetoascii(text, word_or_character):
 
 def process_song(song_dir, word_or_character='character'):
     song = open(song_dir,'r',encoding='utf-8').read().lower()
-    song = unidecode.unidecode(unicodetoascii(song, word_or_character))
     song = re.sub("[\(\[].*?[\)\]]", "", song)
+    song = unidecode.unidecode(unicodetoascii(song, word_or_character))
     if word_or_character == 'word':
         return song.split()
         #return re.split("(\n)",song)
