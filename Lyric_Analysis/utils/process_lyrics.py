@@ -1,3 +1,8 @@
+"""
+This is a helper function for processing lyrics. I.e. replace special 
+characters, make all characters lowercase, etc. 
+"""
+
 import unidecode
 import re
 

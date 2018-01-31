@@ -1,3 +1,8 @@
+"""
+This code takes a trained LSTM model and, given an input initial lyric sequence
+(of length seq_len), will generate new lyrics to complete the song.
+"""
+
 import numpy as np
 import sys, glob
 from utils.process_lyrics import *
@@ -62,7 +67,7 @@ def gen(genre, seq_len, temp, song):
 
 if __name__ == '__main__':
     n_songs = 1
-    genre = 'pop-rock-edm'
+    genre = 'country'
     seq_length = 150
     temperatures = [0.6]
     #temperatures = [0.2,0.4,0.6,0.8,1.0,1.2]

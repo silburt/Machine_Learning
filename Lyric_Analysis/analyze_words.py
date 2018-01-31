@@ -1,4 +1,10 @@
-#http://www.markhneedham.com/blog/2015/01/19/pythonnltk-finding-the-most-common-phrases-in-how-i-met-your-mother/
+"""
+This code conducts some basic from each genre to get some basic statistics like Zipfs law,
+word rank correlations between genres, etc.
+"""
+
+# Some useful links
+# http://www.markhneedham.com/blog/2015/01/19/pythonnltk-finding-the-most-common-phrases-in-how-i-met-your-mother/
 # https://inzaniak.github.io/pybistuffblog/posts/2017/04/20/python-count-frequencies-with-nltk.html
 # https://stackoverflow.com/questions/14364762/counting-n-gram-frequency-in-python-nltk
 

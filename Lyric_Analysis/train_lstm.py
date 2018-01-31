@@ -1,3 +1,8 @@
+"""
+This code builds and trains an LSTM model, with added flexibility so that I 
+can conduct a grid search over hyperparameters. 
+"""
+
 import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense, LSTM, GRU, Embedding, TimeDistributed

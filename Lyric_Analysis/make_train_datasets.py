@@ -1,3 +1,9 @@
+"""
+This code builds the training/validation datasets used to train the LSTM network. 
+Specifically, splits song lyrics into chunks of length seq_length, and builds
+text_to_int and int_to_text mappings.
+"""
+
 import numpy as np
 import glob
 import sys
@@ -49,7 +55,7 @@ def main(genre, n_songs, seq_length):
         n_patterns = len(dataX)
         print("Total Patterns: ", n_patterns)
 
-        # (1-hot encode via a generator in keras)
+        # (don't 1-hot encode here, use generator during training)
         X = np.asarray(dataX)
         y = np.asarray(dataY)
 
@@ -61,9 +67,6 @@ def main(genre, n_songs, seq_length):
 if __name__ == '__main__':
     n_songs = -1
     seq_length = [25,50,75,100,125,150,175,200]
-    #seq_length = [6]#,6,8,10,12,15]
-
-    #genre = 'country'
-    genre = 'pop-rock-edm'
+    genre = 'country'
 
     main(genre, n_songs, seq_length)

@@ -1,13 +1,19 @@
-#bulk of code from
-#https://bigishdata.com/2016/09/27/getting-song-lyrics-from-geniuss-api-scraping/
+"""
+This code scrapes song lyrics from Genius.com using the genius API.
+"""
 
-#Helpful links
-#http://www.jw.pe/blog/post/quantifying-sufjan-stevens-with-the-genius-api-and-nltk/
-#https://stackoverflow.com/questions/45647769/genius-api-search-result-successful-but-no-hits
-#https://stackoverflow.com/questions/9942594/unicodeencodeerror-ascii-codec-cant-encode-character-u-xa0-in-position-20/28152554
+# Helpful links #
+# borrowed some code from
+# https://bigishdata.com/2016/09/27/getting-song-lyrics-from-geniuss-api-scraping/
 
-#importing spotify playlists
-#https://github.com/watsonbox/exportify
+# Other helpful links
+# http://www.jw.pe/blog/post/quantifying-sufjan-stevens-with-the-genius-api-and-nltk/
+# https://stackoverflow.com/questions/45647769/genius-api-search-result-successful-but-no-hits
+# https://stackoverflow.com/questions/9942594/unicodeencodeerror-ascii-codec-cant-encode-character-u-xa0-in-position-20/28152554
+
+# importing spotify playlists
+# https://github.com/watsonbox/exportify
+#################
 
 import requests
 from bs4 import BeautifulSoup
@@ -91,7 +97,7 @@ if __name__ == '__main__':
             with open('%s%s-%s.txt'%(dir,artist,song), 'wb') as out:
                 out.write(lyrics)
         else:
-            print("Couldnt find: %s - %s"%(artist, song))
+            print("Couldnt find track")
             skipped_tracks += 1
 
     n_tracks = len(tracks)
